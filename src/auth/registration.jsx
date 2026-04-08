@@ -1,59 +1,264 @@
-import Input from "../components/input";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { User, Lock, UserCircle, AlertCircle, CheckCircle } from "lucide-react";
+import { authApi } from "../api/Auth";
 
-const Registration = () => {
+const registerSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, "Минимум 3 символа")
+      .regex(/^[a-z0-9_]+$/, "Только латинские буквы, цифры и _"),
+    full_name: z.string().min(2, "Введите ФИО"),
+    password: z.string().min(6, "Минимум 6 символов"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Пароли не совпадают",
+    path: ["confirmPassword"],
+  });
+
+export default function InviteAcceptPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const onSubmit = async (data) => {
+    if (!token) {
+      setError("Токен приглашения не найден");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await authApi.register(
+        {
+          username: data.username,
+          full_name: data.full_name,
+          password: data.password,
+        },
+        token,
+      );
+
+      setSuccess(true);
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 3000);
+    } catch (err) {
+      const message =
+        err.response?.data?.detail ||
+        "Ошибка регистрации. Возможно, приглашение недействительно.";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Нет токена
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-2">
+              Ссылка недействительна
+            </h2>
+            <p className="text-neutral-400 mb-6">
+              Токен приглашения не найден. Убедитесь, что вы перешли по
+              правильной ссылке из письма.
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl transition-colors"
+            >
+              Перейти на страницу входа
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Успешная регистрация
+  if (success) {
+    return (
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl p-8 text-center">
+            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
+            <h2 className="text-xl font-semibold text-white mb-2">
+              Регистрация успешна!
+            </h2>
+            <p className="text-neutral-400 mb-6">
+              Ваш аккаунт создан. Сейчас вы будете перенаправлены на страницу
+              входа...
+            </p>
+            <div className="w-8 h-8 border-2 border-neutral-600 border-t-red-500 rounded-full animate-spin mx-auto" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Основная форма
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-black p-8 shadow-lg">
-        <div className="flex justify-center">
-          <img
-            src="http://80.93.62.177:8000/media/images/Logo_bez_fona_bez_teksta.width-80.height-80.png"
-            alt="Логотип"
-            className="w-12 h-12 object-contain"
-          />
-        </div>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">Регистрация</h1>
-          <p className="mt-2 text-sm text-gray-100">
-            Создайте аккаунт по приглашению
-          </p>
-        </div>
-        <form className="mt-8 space-y-6">
-          <div className="space-y-4">
-            <Input
-              name="Имя пользователя"
-              inputType="text"
-              classNameInput="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-800 text-white placeholder-gray-400"
-              classNameLabel="block text-sm font-medium text-gray-300"
-            />
-            <Input
-              name="ФИО"
-              inputType="text"
-              classNameInput="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-800 text-white placeholder-gray-400"
-              classNameLabel="block text-sm font-medium text-gray-300"
-            />
-            <Input
-              name="Пароль"
-              inputType="password"
-              classNameInput="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-800 text-white placeholder-gray-400"
-              classNameLabel="block text-sm font-medium text-gray-300"
-            />
-            <Input
-              name="Подтвердите пароль"
-              inputType="password"
-              classNameInput="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-gray-800 text-white placeholder-gray-400"
-              classNameLabel="block text-sm font-medium text-gray-300"
+    <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-500/5 rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl  mb-4">
+            <img
+              src="http://80.93.62.177:8000/media/images/Logo_bez_fona_bez_teksta.width-80.height-80.png"
+              alt="Логотип"
+              className="w-12 h-12 object-contain"
             />
           </div>
-          <button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-500 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Зарегистрироваться
-          </button>
-        </form>
+          <h1 className="text-2xl font-bold text-white">ДИО-Консалт</h1>
+          <p className="text-neutral-500 mt-1">Регистрация по приглашению</p>
+        </div>
+
+        <div className="bg-neutral-900/80 backdrop-blur-sm border border-neutral-800 rounded-2xl p-8">
+          <h2 className="text-xl font-semibold text-white mb-2">
+            Создание аккаунта
+          </h2>
+          <p className="text-neutral-500 mb-6">
+            Заполните данные для завершения регистрации
+          </p>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-400">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-2">
+                Имя пользователя (логин)
+              </label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <input
+                  type="text"
+                  {...register("username")}
+                  className="w-full pl-12 pr-4 py-3 bg-neutral-800/50 border border-neutral-700 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                  placeholder="username"
+                />
+              </div>
+              {errors.username && (
+                <p className="text-red-400 text-sm mt-2">
+                  {errors.username.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-2">
+                ФИО
+              </label>
+              <div className="relative">
+                <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <input
+                  type="text"
+                  {...register("full_name")}
+                  className="w-full pl-12 pr-4 py-3 bg-neutral-800/50 border border-neutral-700 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                  placeholder="Иванов Иван Иванович"
+                />
+              </div>
+              {errors.full_name && (
+                <p className="text-red-400 text-sm mt-2">
+                  {errors.full_name.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-2">
+                Пароль
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <input
+                  type="password"
+                  {...register("password")}
+                  className="w-full pl-12 pr-4 py-3 bg-neutral-800/50 border border-neutral-700 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
+              {errors.password && (
+                <p className="text-red-400 text-sm mt-2">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-2">
+                Подтверждение пароля
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <input
+                  type="password"
+                  {...register("confirmPassword")}
+                  className="w-full pl-12 pr-4 py-3 bg-neutral-800/50 border border-neutral-700 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-red-400 text-sm mt-2">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-linear-to-r from-red-800 to-red-700 hover:from-red-700 hover:to-red-600 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Регистрация...
+                </>
+              ) : (
+                "Зарегистрироваться"
+              )}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-center text-neutral-600 text-sm mt-6">
+          © 2026 ДИО-Консалт. Все права защищены.
+        </p>
       </div>
     </div>
   );
-};
-
-export default Registration;
+}
