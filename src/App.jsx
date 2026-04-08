@@ -3,15 +3,17 @@ import LoginPage from "./auth/login";
 import ContentGenerationPage from "./pages/GenerateContent";
 import InvitationsPage from "./auth/invitations";
 import PromotionPage from "./pages/PromotionPage";
+import SmmPage from "./pages/SmmPage";
 import { MainLayout, AuthLayout } from "./components/layout/layout";
 import InviteAcceptPage from "./auth/registration";
-import authHeader from "./auth/authHeader";
+
 const App = () => {
   return (
     <>
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/seo" element={<PromotionPage />} />
+          <Route path="/smm" element={<SmmPage />} />
           <Route path="/generate/content" element={<ContentGenerationPage />} />
         </Route>
         <Route element={<AuthLayout />}>
