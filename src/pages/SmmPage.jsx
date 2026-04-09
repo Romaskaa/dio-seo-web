@@ -258,7 +258,7 @@ export default function SmmPage() {
     <div className="min-h-screen bg-dark-900 text-white">
       <div className="pt-24 lg:pt-28 px-6 lg:px-12 max-w-screen-2xl mx-auto pb-10">
         <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-6 lg:p-8">
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 justify-end">
             <ModeButton
               active={mode === "analyze"}
               onClick={() => setMode("analyze")}
