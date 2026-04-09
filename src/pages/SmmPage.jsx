@@ -71,16 +71,12 @@ function MetricsCard({ label, value }) {
   );
 }
 
-function ModeButton({ active, children, onClick }) {
+function ModeButton({ children, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm sm:text-base font-medium transition-colors ${
-        active
-          ? "bg-red-600 text-white"
-          : "bg-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-700"
-      }`}
+      className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm sm:text-base font-medium transition-colors bg-red-600 text-white hover:bg-red-500"
     >
       {children}
     </button>
@@ -258,18 +254,14 @@ export default function SmmPage() {
     <div className="min-h-screen bg-dark-900 text-white">
       <div className="pt-24 lg:pt-28 px-6 lg:px-12 max-w-screen-2xl mx-auto pb-10">
         <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-6 lg:p-8">
-          <div className="flex flex-wrap gap-3 justify-end">
+          <div className="flex flex-wrap items-center gap-3 justify-between">
+            <div className="text-sm text-neutral-400">
+              {mode === "analyze" ? "Страница анализа VK-групп" : "Страница генерации контента"}
+            </div>
             <ModeButton
-              active={mode === "analyze"}
-              onClick={() => setMode("analyze")}
+              onClick={() => setMode((prev) => (prev === "analyze" ? "generate" : "analyze"))}
             >
-              Анализ VK-групп
-            </ModeButton>
-            <ModeButton
-              active={mode === "generate"}
-              onClick={() => setMode("generate")}
-            >
-              Генерация контента
+              {mode === "analyze" ? "Генерация контента" : "Анализ VK-групп"}
             </ModeButton>
           </div>
         </div>
