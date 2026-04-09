@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import {
   Bot,
   Calendar,
@@ -258,70 +258,66 @@ export default function SmmPage() {
           <div className="xl:col-span-8 h-full">
             {mode === "analyze" ? (
               <div className="h-full min-h-[680px] flex flex-col gap-6">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                  <div className="lg:col-span-4 xl:col-span-3">
-                    <ModeButton onClick={() => setMode("generate")}>
-                      Генерация контента
-                    </ModeButton>
-                  </div>
-
-                  <div className="lg:col-span-8 xl:col-span-9 bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl px-5 py-4">
-                    <button
-                      type="button"
-                      onClick={() => setIsFiltersOpen((prev) => !prev)}
-                      className="w-full flex items-center justify-between gap-3 text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-red-500/10 rounded-xl flex items-center justify-center">
-                          <Bot className="w-4 h-4 text-red-400" />
-                        </div>
-                        <div className="font-semibold">Фильтры анализа</div>
+                <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl px-5 py-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsFiltersOpen((prev) => !prev)}
+                    className="w-full flex items-center justify-between gap-3 text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-red-500/10 rounded-xl flex items-center justify-center">
+                        <Bot className="w-4 h-4 text-red-400" />
                       </div>
-                      <span className={`text-neutral-500 text-xs transition-transform duration-300 ${isFiltersOpen ? "rotate-180" : ""}`}>
-                        ▼
-                      </span>
-                    </button>
-
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ease-out ${
-                        isFiltersOpen ? "mt-4 max-h-64 opacity-100" : "mt-0 max-h-0 opacity-0"
+                      <div className="font-semibold">Фильтры анализа</div>
+                    </div>
+                    <span
+                      className={`text-neutral-500 text-xs transition-transform duration-300 ${
+                        isFiltersOpen ? "rotate-180" : ""
                       }`}
                     >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm text-neutral-400 mb-2">Лимит постов</label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="100"
-                            value={analyzeForm.post_limit}
-                            onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, post_limit: e.target.value }))}
-                            className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                          />
-                        </div>
+                      ▼
+                    </span>
+                  </button>
 
-                        <div>
-                          <label className="block text-sm text-neutral-400 mb-2">Язык ответа</label>
-                          <select
-                            value={analyzeForm.language}
-                            onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, language: e.target.value }))}
-                            className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                          >
-                            {languageOptions.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ease-out ${
+                      isFiltersOpen ? "mt-4 max-h-64 opacity-100" : "mt-0 max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-neutral-400 mb-2">Лимит постов</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={analyzeForm.post_limit}
+                          onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, post_limit: e.target.value }))}
+                          className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm text-neutral-400 mb-2">Язык ответа</label>
+                        <select
+                          value={analyzeForm.language}
+                          onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, language: e.target.value }))}
+                          className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
+                        >
+                          {languageOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex-1 min-h-0 bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-8 lg:p-10 overflow-y-auto">
-                <h2 className="text-2xl font-semibold">Анализ VK-группы</h2>
-                <p className="mt-2 text-neutral-400 text-sm">
+                  <h2 className="text-2xl font-semibold">Анализ VK-группы</h2>
+                  <p className="mt-2 text-neutral-400 text-sm">
                   Введите ссылку или идентификатор группы, затем получите разбор метрик, рекомендаций и конкурентов.
                 </p>
 
@@ -683,42 +679,53 @@ export default function SmmPage() {
           <div className={`xl:col-span-4 ${mode === "analyze" ? "h-full" : ""}`}>
             <div className={mode === "analyze" ? "h-full" : "xl:sticky xl:top-28 space-y-4"}>
               {mode === "analyze" ? (
-                <div className="h-full min-h-[680px] bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-4 flex flex-col gap-3">
-                  <div className="text-sm text-neutral-400">AI-помощник</div>
-                  <div className="space-y-3 overflow-y-auto pr-1 custom-scroll flex-1 min-h-0">
-                    {assistantMessages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`rounded-2xl px-4 py-3 text-sm ${
-                          message.type === "user"
-                            ? "bg-red-600 text-white ml-6"
-                            : "bg-neutral-800 text-neutral-200 mr-6"
-                        }`}
+                <div className="h-full min-h-[680px] flex flex-col gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setMode("generate")}
+                    className="w-full py-4 rounded-3xl bg-red-600 hover:bg-red-500 transition-colors flex items-center justify-center gap-3"
+                  >
+                    <Wand2 className="w-5 h-5" />
+                    <span className="font-medium">Генерация контента</span>
+                  </button>
+
+                  <div className="flex-1 min-h-0 bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-4 flex flex-col gap-3">
+                    <div className="text-sm text-neutral-400">AI-помощник</div>
+                    <div className="space-y-3 overflow-y-auto pr-1 custom-scroll flex-1 min-h-0 ">
+                      {assistantMessages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`rounded-2xl px-4 py-3 text-sm ${
+                            message.type === "user"
+                              ? "bg-red-600 text-white ml-6"
+                              : "bg-neutral-800 text-neutral-200 mr-6"
+                          }`}
+                        >
+                          {message.text}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        value={assistantInput}
+                        onChange={(e) => setAssistantInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            sendAssistantMessage();
+                          }
+                        }}
+                        placeholder="Спросите про SMM"
+                        className="flex-1 bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-2.5 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={sendAssistantMessage}
+                        className="w-10 h-10 rounded-2xl bg-red-600 hover:bg-red-500 flex items-center justify-center"
                       >
-                        {message.text}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      value={assistantInput}
-                      onChange={(e) => setAssistantInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          sendAssistantMessage();
-                        }
-                      }}
-                      placeholder="Спросите про SMM"
-                      className="flex-1 bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-2.5 text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={sendAssistantMessage}
-                      className="w-10 h-10 rounded-2xl bg-red-600 hover:bg-red-500 flex items-center justify-center"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
