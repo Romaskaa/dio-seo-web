@@ -269,7 +269,7 @@ export default function SmmPage() {
         <div className="mt-6 grid grid-cols-1 xl:grid-cols-12 gap-6">
           <div className="xl:col-span-8 space-y-6">
             {mode === "analyze" ? (
-              <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-6 lg:p-8">
+              <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-8 lg:p-10 min-h-[680px]">
                 <h2 className="text-2xl font-semibold">Анализ VK-группы</h2>
                 <p className="mt-2 text-neutral-400 text-sm">
                   Введите ссылку или идентификатор группы, затем получите разбор метрик, рекомендаций и конкурентов.
@@ -285,35 +285,6 @@ export default function SmmPage() {
                       placeholder="https://vk.com/diocon"
                       className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white placeholder:text-neutral-500"
                     />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm text-neutral-400 mb-2">Лимит постов</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={analyzeForm.post_limit}
-                        onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, post_limit: e.target.value }))}
-                        className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-neutral-400 mb-2">Язык ответа</label>
-                      <select
-                        value={analyzeForm.language}
-                        onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, language: e.target.value }))}
-                        className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                      >
-                        {languageOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
                   </div>
 
                   <button
@@ -660,82 +631,178 @@ export default function SmmPage() {
 
           <div className="xl:col-span-4">
             <div className="xl:sticky xl:top-28 space-y-4">
-              <button
-                type="button"
-                onClick={() => setAssistantOpen((prev) => !prev)}
-                className="w-full py-4 rounded-3xl bg-neutral-900/70 backdrop-blur-md border border-neutral-800 hover:border-red-500/50 transition-colors flex items-center justify-center gap-3"
-              >
-                <div className="w-8 h-8 bg-red-500/10 rounded-2xl flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-red-400" />
-                </div>
-                <span className="font-medium">{assistantOpen ? "Скрыть помощника" : "Открыть помощника"}</span>
-              </button>
-              <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-red-500/10 rounded-xl flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-red-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold">SMM-статус</div>
-                    <div className="text-xs text-neutral-500">{mode === "analyze" ? "Режим анализа" : "Режим генерации"}</div>
-                  </div>
-                </div>
+              {mode === "analyze" ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setMode("generate")}
+                    className="w-full py-4 rounded-3xl bg-red-600 hover:bg-red-500 transition-colors flex items-center justify-center gap-3"
+                  >
+                    <Wand2 className="w-5 h-5" />
+                    <span className="font-medium">Генерация контента</span>
+                  </button>
 
-                <div className="space-y-2 text-sm text-neutral-300">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-neutral-500" />
-                    <span>Анализ и генерация на одном экране</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Image className="w-4 h-4 text-neutral-500" />
-                    <span>Поддержка image-постов и перегенерации</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-neutral-500" />
-                    <span>Inline ошибки и статусы без alert</span>
-                  </div>
-                </div>
-              </div>
-
-              {assistantOpen && (
-                <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-4 flex flex-col gap-3 max-h-[60vh]">
-                  <div className="text-sm text-neutral-400">AI-помощник</div>
-                  <div className="space-y-3 overflow-y-auto pr-1 custom-scroll">
-                    {assistantMessages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`rounded-2xl px-4 py-3 text-sm ${
-                          message.type === "user"
-                            ? "bg-red-600 text-white ml-6"
-                            : "bg-neutral-800 text-neutral-200 mr-6"
-                        }`}
-                      >
-                        {message.text}
+                  <details className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-5 group" open>
+                    <summary className="cursor-pointer list-none flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-red-500/10 rounded-xl flex items-center justify-center">
+                          <Bot className="w-4 h-4 text-red-400" />
+                        </div>
+                        <div className="font-semibold">Фильтры анализа</div>
                       </div>
-                    ))}
+                      <span className="text-neutral-500 text-xs transition-transform group-open:rotate-180">⌄</span>
+                    </summary>
+
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <label className="block text-sm text-neutral-400 mb-2">Лимит постов</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={analyzeForm.post_limit}
+                          onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, post_limit: e.target.value }))}
+                          className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm text-neutral-400 mb-2">Язык ответа</label>
+                        <select
+                          value={analyzeForm.language}
+                          onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, language: e.target.value }))}
+                          className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
+                        >
+                          {languageOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </details>
+
+                  <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-4 flex flex-col gap-3 max-h-[60vh]">
+                    <div className="text-sm text-neutral-400">AI-помощник</div>
+                    <div className="space-y-3 overflow-y-auto pr-1 custom-scroll">
+                      {assistantMessages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`rounded-2xl px-4 py-3 text-sm ${
+                            message.type === "user"
+                              ? "bg-red-600 text-white ml-6"
+                              : "bg-neutral-800 text-neutral-200 mr-6"
+                          }`}
+                        >
+                          {message.text}
+                        </div>
+                      ))}
+
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        value={assistantInput}
+                        onChange={(e) => setAssistantInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            sendAssistantMessage();
+                          }
+                        }}
+                        placeholder="Спросите про SMM"
+                        className="flex-1 bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-2.5 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={sendAssistantMessage}
+                        className="w-10 h-10 rounded-2xl bg-red-600 hover:bg-red-500 flex items-center justify-center"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <input
-                      value={assistantInput}
-                      onChange={(e) => setAssistantInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          sendAssistantMessage();
-                        }
-                      }}
-                      placeholder="Спросите про SMM"
-                      className="flex-1 bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-2.5 text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={sendAssistantMessage}
-                      className="w-10 h-10 rounded-2xl bg-red-600 hover:bg-red-500 flex items-center justify-center"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setAssistantOpen((prev) => !prev)}
+                    className="w-full py-4 rounded-3xl bg-neutral-900/70 backdrop-blur-md border border-neutral-800 hover:border-red-500/50 transition-colors flex items-center justify-center gap-3"
+                  >
+                    <div className="w-8 h-8 bg-red-500/10 rounded-2xl flex items-center justify-center">
+                      <MessageCircle className="w-5 h-5 text-red-400" />
+                    </div>
+                    <span className="font-medium">{assistantOpen ? "Скрыть помощника" : "Открыть помощника"}</span>
+                  </button>
+                  <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 bg-red-500/10 rounded-xl flex items-center justify-center">
+                        <Bot className="w-4 h-4 text-red-400" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">SMM-статус</div>
+                        <div className="text-xs text-neutral-500">Режим генерации</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-sm text-neutral-300">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-neutral-500" />
+                        <span>Анализ и генерация на одном экране</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Image className="w-4 h-4 text-neutral-500" />
+                        <span>Поддержка image-постов и перегенерации</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-neutral-500" />
+                        <span>Inline ошибки и статусы без alert</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+
+                  {assistantOpen && (
+                    <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-4 flex flex-col gap-3 max-h-[60vh]">
+                      <div className="text-sm text-neutral-400">AI-помощник</div>
+                      <div className="space-y-3 overflow-y-auto pr-1 custom-scroll">
+                        {assistantMessages.map((message) => (
+                          <div
+                            key={message.id}
+                            className={`rounded-2xl px-4 py-3 text-sm ${
+                              message.type === "user"
+                                ? "bg-red-600 text-white ml-6"
+                                : "bg-neutral-800 text-neutral-200 mr-6"
+                            }`}
+                          >
+                            {message.text}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          value={assistantInput}
+                          onChange={(e) => setAssistantInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              sendAssistantMessage();
+                            }
+                          }}
+                          placeholder="Спросите про SMM"
+                          className="flex-1 bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-2.5 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={sendAssistantMessage}
+                          className="w-10 h-10 rounded-2xl bg-red-600 hover:bg-red-500 flex items-center justify-center"
+                        >
+                          <Send className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
