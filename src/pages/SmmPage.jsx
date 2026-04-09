@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+﻿import { useMemo, useState, useRef, useLayoutEffect } from "react";
 import {
   Bot,
   Calendar,
@@ -8,8 +8,12 @@ import {
   MessageCircle,
   Send,
   Wand2,
+  History,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import { SmmApi } from "../api/Smm";
+import { createPortal } from "react-dom";
 
 const initialAnalyzeForm = {
   source: "",
@@ -28,21 +32,31 @@ const initialGenerateForm = {
 };
 
 const languageOptions = [
-  { value: "ru", label: "Русский" },
-  { value: "en", label: "English" },
+  { 
+    value: "ru", 
+    label: "Русский", 
+    flag: "🇷🇺",
+    description: "Русский язык"
+  },
+  { 
+    value: "en", 
+    label: "English", 
+    flag: "🇬🇧",
+    description: "Английский язык"
+  },
 ];
 
 const contentTypeOptions = [
-  { value: "text", label: "Текст" },
-  { value: "story", label: "Сторис" },
-  { value: "image", label: "Текст + изображение" },
-  { value: "video", label: "Видео" },
+  { value: "text", label: "Текст", icon: "📝" },
+  { value: "story", label: "Сторис", icon: "📱" },
+  { value: "image", label: "Текст + изображение", icon: "🖼️" },
+  { value: "video", label: "Видео", icon: "🎬" },
 ];
 
 const lengthOptions = [
-  { value: "short", label: "Короткая" },
-  { value: "medium", label: "Средняя" },
-  { value: "long", label: "Длинная" },
+  { value: "short", label: "Короткая", description: "До 500 символов" },
+  { value: "medium", label: "Средняя", description: "500-1500 символов" },
+  { value: "long", label: "Длинная", description: "Более 1500 символов" },
 ];
 
 const formatNumber = (value) =>
@@ -71,15 +85,129 @@ function MetricsCard({ label, value }) {
   );
 }
 
-function ModeButton({ children, onClick }) {
+function CustomSelect({
+  value,
+  onChange,
+  options,
+  className = "",
+  containerClassName = "",
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState({});
+  const buttonRef = useRef(null);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  // 📌 позиционирование dropdown
+  useLayoutEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+
+      setDropdownStyle({
+        position: "fixed",
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 101,
+      });
+    }
+  }, [isOpen]);
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm sm:text-base font-medium transition-colors bg-red-600 text-white hover:bg-red-500"
-    >
-      {children}
-    </button>
+    <div className={`relative ${containerClassName}`}>
+      {/* КНОПКА */}
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={`w-full h-[50px] bg-dark-800 border border-neutral-700 hover:border-neutral-600 focus:border-red-500 rounded-2xl px-4 text-white transition-all flex items-center justify-between ${className}`}
+      >
+        <div className="flex items-center gap-3">
+          {selectedOption?.flag && (
+            <span className="text-xl">{selectedOption.flag}</span>
+          )}
+          {selectedOption?.icon && (
+            <span className="text-lg">{selectedOption.icon}</span>
+          )}
+          <div className="text-left">
+            <div className="font-medium">{selectedOption?.label}</div>
+            {selectedOption?.description && (
+              <div className="text-xs text-neutral-500">
+                {selectedOption.description}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <ChevronDown
+          className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {/* PORTAL */}
+      {isOpen &&
+        createPortal(
+          <>
+            {/* overlay */}
+            <div
+              className="fixed inset-0 z-[100]"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* dropdown */}
+            <div
+              style={dropdownStyle}
+              className="bg-dark-800 border border-neutral-700 rounded-2xl overflow-hidden shadow-2xl"
+            >
+              {options.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    onChange({ target: { value: option.value } });
+                    setIsOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 text-left hover:bg-neutral-700/50 transition-colors flex items-center justify-between group ${
+                    option.value === value ? "bg-red-500/10" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {option.flag && (
+                      <span className="text-xl">{option.flag}</span>
+                    )}
+                    {option.icon && (
+                      <span className="text-lg">{option.icon}</span>
+                    )}
+                    <div>
+                      <div
+                        className={`font-medium ${
+                          option.value === value
+                            ? "text-red-400"
+                            : "text-white"
+                        }`}
+                      >
+                        {option.label}
+                      </div>
+                      {option.description && (
+                        <div className="text-xs text-neutral-500">
+                          {option.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {option.value === value && (
+                    <Check className="w-4 h-4 text-red-400" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </>,
+          document.body
+        )}
+    </div>
   );
 }
 
@@ -257,12 +385,12 @@ export default function SmmPage() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch xl:auto-rows-fr">
           <div className="xl:col-span-8 h-full">
             {mode === "analyze" ? (
-              <div className="h-full min-h-[680px] flex flex-col gap-6">
-                <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl px-5 py-4">
+              <div className="h-full min-h-[680px] flex flex-col gap-4">
+                <div className="bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl">
                   <button
                     type="button"
                     onClick={() => setIsFiltersOpen((prev) => !prev)}
-                    className="w-full flex items-center justify-between gap-3 text-left"
+                    className="w-full h-14 px-5 flex items-center justify-between gap-3 text-left"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-red-500/10 rounded-xl flex items-center justify-center">
@@ -284,165 +412,177 @@ export default function SmmPage() {
                       isFiltersOpen ? "mt-4 max-h-64 opacity-100" : "mt-0 max-h-0 opacity-0"
                     }`}
                   >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm text-neutral-400 mb-2">Лимит постов</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="100"
-                          value={analyzeForm.post_limit}
-                          onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, post_limit: e.target.value }))}
-                          className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                        />
-                      </div>
+                    <div className="px-5 pb-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-neutral-400 mb-2">Лимит постов</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={analyzeForm.post_limit}
+                            onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, post_limit: e.target.value }))}
+                            className="w-full h-[50px] bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 text-white"
+                          />
+                        </div>
 
-                      <div>
-                        <label className="block text-sm text-neutral-400 mb-2">Язык ответа</label>
-                        <select
-                          value={analyzeForm.language}
-                          onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, language: e.target.value }))}
-                          className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                        >
-                          {languageOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                        <div>
+                          <label className="block text-sm text-neutral-400 mb-2">Язык ответа</label>
+                          <CustomSelect
+                            value={analyzeForm.language}
+                            onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, language: e.target.value }))}
+                            options={languageOptions}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex-1 min-h-0 bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-8 lg:p-10 overflow-y-auto">
+                <div className="flex-1 min-h-0 bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-8 lg:p-10 overflow-y-auto flex flex-col">
                   <h2 className="text-2xl font-semibold">Анализ VK-группы</h2>
                   <p className="mt-2 text-neutral-400 text-sm">
-                  Введите ссылку или идентификатор группы, затем получите разбор метрик, рекомендаций и конкурентов.
-                </p>
+                    Введите ссылку или идентификатор группы, затем получите разбор метрик, рекомендаций и конкурентов.
+                  </p>
 
-                <form onSubmit={handleAnalyzeSubmit} className="mt-6 space-y-4">
-                  <div>
-                    <label className="block text-sm text-neutral-400 mb-2">Ссылка / screen_name / id</label>
-                    <input
-                      value={analyzeForm.source}
-                      onChange={(e) => setAnalyzeForm((prev) => ({ ...prev, source: e.target.value }))}
-                      required
-                      placeholder="https://vk.com/diocon"
-                      className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white placeholder:text-neutral-500"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={analyzeLoading}
-                    className="w-full sm:w-auto bg-red-600 hover:bg-red-500 disabled:bg-neutral-700 px-6 py-3 rounded-2xl font-medium"
-                  >
-                    {analyzeLoading ? "Анализируем..." : "Запустить анализ"}
-                  </button>
-                </form>
-
-                {analyzeError && (
-                  <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
-                    {analyzeError}
-                  </div>
-                )}
-
-                {analyzeResult ? (
-                  <div className="mt-8 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      <MetricsCard label="Постов проанализировано" value={formatNumber(analyzeResult.metrics.total_posts_analyzed)} />
-                      <MetricsCard label="Средние просмотры" value={formatNumber(analyzeResult.metrics.average_views)} />
-                      <MetricsCard label="Средние лайки" value={formatNumber(analyzeResult.metrics.average_likes)} />
-                      <MetricsCard label="Средние комментарии" value={formatNumber(analyzeResult.metrics.average_comments)} />
-                      <MetricsCard label="Постов в день" value={analyzeResult.metrics.posts_per_day} />
-                    </div>
-
-                    <div className="bg-dark-800 border border-neutral-800 rounded-2xl p-5">
-                      <div className="text-sm text-neutral-500 mb-2">Сводка</div>
-                      <p className="text-neutral-200 leading-relaxed">{analyzeResult.ai.summary || "Сводка пока не предоставлена."}</p>
-                    </div>
-
-                    <div className="bg-dark-800 border border-neutral-800 rounded-2xl p-5">
-                      <div className="text-sm text-neutral-500 mb-2">Теги поиска конкурентов</div>
-                      <div className="flex flex-wrap gap-2">
-                        {analyzeResult.ai.search_tags.length ? (
-                          analyzeResult.ai.search_tags.map((tag) => (
-                            <span key={tag} className="px-3 py-1 rounded-full text-xs bg-red-500/15 border border-red-500/30 text-red-200">
-                              {tag}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-neutral-500 text-sm">Теги не найдены</span>
-                        )}
+                  <form onSubmit={handleAnalyzeSubmit} className="mt-6 space-y-4">
+                    <div>
+                      <label className="block text-sm text-neutral-400 mb-2">
+                        Ссылка / screen_name / id
+                      </label>
+                      <div className="flex gap-4 max-[1024px]:flex-wrap">
+                        <input
+                          value={analyzeForm.source}
+                          onChange={(e) =>
+                            setAnalyzeForm((prev) => ({ ...prev, source: e.target.value }))
+                          }
+                          required
+                          placeholder="https://vk.com/diocon"
+                          className="flex-1 min-w-0 bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-6 py-4 text-white placeholder:text-neutral-500"
+                        />
+                        <button
+                          type="submit"
+                          disabled={analyzeLoading}
+                          className="bg-red-600 hover:bg-red-500 disabled:bg-neutral-700 px-10 py-4 rounded-2xl font-medium transition-colors whitespace-nowrap"
+                        >
+                          {analyzeLoading ? "Анализируем..." : "Запустить анализ"}
+                        </button>
+                        <button
+                          type="button"
+                          className="px-6 py-4 rounded-2xl font-medium border border-neutral-700 hover:border-red-500/50 hover:text-white text-neutral-200 transition-colors whitespace-nowrap flex items-center justify-center gap-2"
+                        >
+                          <History className="w-4 h-4" />
+                          История
+                        </button>
                       </div>
                     </div>
+                  </form>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div className="bg-dark-800 border border-neutral-800 rounded-2xl p-5">
-                        <div className="text-sm text-neutral-500 mb-2">Интересы аудитории</div>
-                        {analyzeResult.ai.audience_interests.length ? (
-                          <ul className="list-disc pl-5 space-y-1 text-neutral-200">
-                            {analyzeResult.ai.audience_interests.map((item) => (
-                              <li key={item}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span className="text-neutral-500 text-sm">Нет данных</span>
-                        )}
+                  {analyzeError && (
+                    <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
+                      {analyzeError}
+                    </div>
+                  )}
+
+                  {analyzeResult ? (
+                    <div className="mt-8 space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <MetricsCard label="Постов проанализировано" value={formatNumber(analyzeResult.metrics.total_posts_analyzed)} />
+                        <MetricsCard label="Средние просмотры" value={formatNumber(analyzeResult.metrics.average_views)} />
+                        <MetricsCard label="Средние лайки" value={formatNumber(analyzeResult.metrics.average_likes)} />
+                        <MetricsCard label="Средние комментарии" value={formatNumber(analyzeResult.metrics.average_comments)} />
+                        <MetricsCard label="Постов в день" value={analyzeResult.metrics.posts_per_day} />
                       </div>
 
                       <div className="bg-dark-800 border border-neutral-800 rounded-2xl p-5">
-                        <div className="text-sm text-neutral-500 mb-2">Активность аудитории</div>
-                        {analyzeResult.ai.audience_activity.length ? (
-                          <ul className="list-disc pl-5 space-y-1 text-neutral-200">
-                            {analyzeResult.ai.audience_activity.map((item) => (
-                              <li key={item}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span className="text-neutral-500 text-sm">Нет данных</span>
-                        )}
+                        <div className="text-sm text-neutral-500 mb-2">Сводка</div>
+                        <p className="text-neutral-200 leading-relaxed">{analyzeResult.ai.summary || "Сводка пока не предоставлена."}</p>
                       </div>
-                    </div>
 
-                    <div className="bg-dark-800 border border-neutral-800 rounded-2xl p-5 overflow-x-auto">
-                      <div className="text-sm text-neutral-500 mb-3">Топ постов</div>
-                      {analyzeTopPosts.length ? (
-                        <table className="w-full text-sm">
-                          <thead className="text-neutral-400">
-                            <tr className="border-b border-neutral-800">
-                              <th className="py-2 text-left font-medium">ID</th>
-                              <th className="py-2 text-left font-medium">Дата</th>
-                              <th className="py-2 text-left font-medium">Просмотры</th>
-                              <th className="py-2 text-left font-medium">Лайки</th>
-                              <th className="py-2 text-left font-medium">Комментарии</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {analyzeTopPosts.map((post) => (
-                              <tr key={`${post.post_id}-${post.date}`} className="border-b border-neutral-800/80">
-                                <td className="py-2">{post.post_id}</td>
-                                <td className="py-2">{formatDate(post.date)}</td>
-                                <td className="py-2">{formatNumber(post.views)}</td>
-                                <td className="py-2">{formatNumber(post.likes)}</td>
-                                <td className="py-2">{formatNumber(post.comments)}</td>
+                      <div className="bg-dark-800 border border-neutral-800 rounded-2xl p-5">
+                        <div className="text-sm text-neutral-500 mb-2">Теги поиска конкурентов</div>
+                        <div className="flex flex-wrap gap-2">
+                          {analyzeResult.ai.search_tags.length ? (
+                            analyzeResult.ai.search_tags.map((tag) => (
+                              <span key={tag} className="px-3 py-1 rounded-full text-xs bg-red-500/15 border border-red-500/30 text-red-200">
+                                {tag}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-neutral-500 text-sm">Теги не найдены</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="bg-dark-800 border border-neutral-800 rounded-2xl p-5">
+                          <div className="text-sm text-neutral-500 mb-2">Интересы аудитории</div>
+                          {analyzeResult.ai.audience_interests.length ? (
+                            <ul className="list-disc pl-5 space-y-1 text-neutral-200">
+                              {analyzeResult.ai.audience_interests.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span className="text-neutral-500 text-sm">Нет данных</span>
+                          )}
+                        </div>
+
+                        <div className="bg-dark-800 border border-neutral-800 rounded-2xl p-5">
+                          <div className="text-sm text-neutral-500 mb-2">Активность аудитории</div>
+                          {analyzeResult.ai.audience_activity.length ? (
+                            <ul className="list-disc pl-5 space-y-1 text-neutral-200">
+                              {analyzeResult.ai.audience_activity.map((item) => (
+                                <li key={item}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span className="text-neutral-500 text-sm">Нет данных</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="bg-dark-800 border border-neutral-800 rounded-2xl p-5 overflow-x-auto">
+                        <div className="text-sm text-neutral-500 mb-3">Топ постов</div>
+                        {analyzeTopPosts.length ? (
+                          <table className="w-full text-sm">
+                            <thead className="text-neutral-400">
+                              <tr className="border-b border-neutral-800">
+                                <th className="py-2 text-left font-medium">ID</th>
+                                <th className="py-2 text-left font-medium">Дата</th>
+                                <th className="py-2 text-left font-medium">Просмотры</th>
+                                <th className="py-2 text-left font-medium">Лайки</th>
+                                <th className="py-2 text-left font-medium">Комментарии</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      ) : (
-                        <div className="text-sm text-neutral-500">Топ постов недоступен.</div>
-                      )}
+                            </thead>
+                            <tbody>
+                              {analyzeTopPosts.map((post) => (
+                                <tr key={`${post.post_id}-${post.date}`} className="border-b border-neutral-800/80">
+                                  <td className="py-2">{post.post_id}</td>
+                                  <td className="py-2">{formatDate(post.date)}</td>
+                                  <td className="py-2">{formatNumber(post.views)}</td>
+                                  <td className="py-2">{formatNumber(post.likes)}</td>
+                                  <td className="py-2">{formatNumber(post.comments)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <div className="text-sm text-neutral-500">Топ постов недоступен.</div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  !analyzeError && (
-                    <div className="mt-8 border border-dashed border-neutral-700 rounded-2xl p-8 text-center text-neutral-500">
-                      Запустите анализ группы, результат появится здесь.
-                    </div>
-                  )
-                )}
+                  ) : (
+                    !analyzeError && (
+                      <div className="mt-8 border border-dashed border-neutral-700 rounded-2xl p-8 text-center text-neutral-500 flex-1 flex items-center justify-center min-h-[400px]">
+                        <div>
+                          <Bot className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                          <p className="text-lg">Запустите анализ группы</p>
+                          <p className="text-sm mt-2 opacity-75">Результат появится здесь</p>
+                        </div>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             ) : (
@@ -486,59 +626,41 @@ export default function SmmPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm text-neutral-400 mb-2">Тип контента</label>
-                      <select
+                      <CustomSelect
                         value={generateForm.content_type}
                         onChange={(e) => setGenerateForm((prev) => ({ ...prev, content_type: e.target.value }))}
-                        className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                      >
-                        {contentTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                        options={contentTypeOptions}
+                      />
                     </div>
 
                     <div>
                       <label className="block text-sm text-neutral-400 mb-2">Длина</label>
-                      <select
+                      <CustomSelect
                         value={generateForm.length}
                         onChange={(e) => setGenerateForm((prev) => ({ ...prev, length: e.target.value }))}
-                        className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                      >
-                        {lengthOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                        options={lengthOptions}
+                      />
                     </div>
 
                     <div>
                       <label className="block text-sm text-neutral-400 mb-2">Язык</label>
-                      <select
+                      <CustomSelect
                         value={generateForm.language}
                         onChange={(e) => setGenerateForm((prev) => ({ ...prev, language: e.target.value }))}
-                        className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                      >
-                        {languageOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                        options={languageOptions}
+                      />
                     </div>
 
                     <div>
                       <label className="block text-sm text-neutral-400 mb-2">Сразу публиковать</label>
-                      <select
+                      <CustomSelect
                         value={generateForm.publish ? "yes" : "no"}
                         onChange={(e) => setGenerateForm((prev) => ({ ...prev, publish: e.target.value === "yes" }))}
-                        className="w-full bg-dark-800 border border-neutral-700 focus:border-red-500 rounded-2xl px-4 py-3 text-white"
-                      >
-                        <option value="no">Нет</option>
-                        <option value="yes">Да</option>
-                      </select>
+                        options={[
+                          { value: "no", label: "Нет", icon: "❌" },
+                          { value: "yes", label: "Да", icon: "✅" },
+                        ]}
+                      />
                     </div>
                   </div>
 
@@ -683,7 +805,7 @@ export default function SmmPage() {
                   <button
                     type="button"
                     onClick={() => setMode("generate")}
-                    className="w-full py-4 rounded-3xl bg-red-600 hover:bg-red-500 transition-colors flex items-center justify-center gap-3"
+                    className="w-full h-14 rounded-3xl bg-red-600 hover:bg-red-500 transition-colors flex items-center justify-center gap-3"
                   >
                     <Wand2 className="w-5 h-5" />
                     <span className="font-medium">Генерация контента</span>
